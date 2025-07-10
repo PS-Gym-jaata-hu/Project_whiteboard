@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import io from "socket.io-client";
+
 import ClientRoom from "./ClientRoom";
 import JoinCreateRoom from "./JoinCreateRoom";
 import Room from "./Room";
@@ -8,15 +9,20 @@ import Sidebar from "./Sidebar";
 
 import "./style.css";
 
-const server = "https://project-whiteboard-backend.onrender.com";
+// ✅ Use deployed backend
+const SERVER_URL = "https://project-whiteboard-backend.onrender.com";
+
+// ✅ Connection options for reliability
 const connectionOptions = {
-  "force new connection": true,
-  reconnectionAttempts: "Infinity",
+  forceNew: true,
+  reconnection: true,
+  reconnectionAttempts: Infinity,
   timeout: 10000,
-  transports: ["websocket"],
+  transports: ["websocket", "polling"], // 🛠️ fallback ensures reliability
 };
 
-const socket = io(server, connectionOptions);
+// ✅ Create socket once on load
+const socket = io(SERVER_URL, connectionOptions);
 
 const App = () => {
   const [userNo, setUserNo] = useState(0);
@@ -24,10 +30,10 @@ const App = () => {
   const [user, setUser] = useState({});
   const [users, setUsers] = useState([]);
 
+  // ✅ Generate unique UUID for user session
   const uuid = () => {
-    var S4 = () => {
-      return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
-    };
+    const S4 = () =>
+      (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
     return (
       S4() +
       S4() +
@@ -44,11 +50,12 @@ const App = () => {
     );
   };
 
+  // ✅ Emit user joined only when ready
   useEffect(() => {
-    if (roomJoined) {
+    if (roomJoined && user?.username) {
       socket.emit("user-joined", user);
     }
-  }, [roomJoined]);
+  }, [roomJoined, user]);
 
   return (
     <div className="home">
@@ -84,4 +91,5 @@ const App = () => {
     </div>
   );
 };
+
 export default App;

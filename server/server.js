@@ -5,25 +5,25 @@ const { userJoin, getUsers, userLeave } = require("./utils/user");
 
 const app = express();
 const server = http.createServer(app);
+
+// ✅ Proper Socket.IO CORS setup
 const socketIO = require("socket.io");
-const io = socketIO(server);
+const io = socketIO(server, {
+  cors: {
+    origin: "*", // 🔁 change to Netlify URL later
+    methods: ["GET", "POST"],
+  }
+});
 
 app.use(cors());
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept"
-  );
-  next();
-});
 
 app.get("/", (req, res) => {
-  res.send("server");
+  res.status(200).json({ status: "ok", message: "Server running 🎉" });
 });
 
-// socket.io
+// socket.io logic
 let imageUrl, userRoom;
+
 io.on("connection", (socket) => {
   socket.on("user-joined", (data) => {
     const { roomId, userId, userName, host, presenter } = data;
@@ -31,9 +31,11 @@ io.on("connection", (socket) => {
     const user = userJoin(socket.id, userName, roomId, host, presenter);
     const roomUsers = getUsers(user.room);
     socket.join(user.room);
+
     socket.emit("message", {
       message: "Welcome to ChatRoom",
     });
+
     socket.broadcast.to(user.room).emit("message", {
       message: `${user.username} has joined`,
     });
@@ -60,7 +62,6 @@ io.on("connection", (socket) => {
   });
 });
 
-// serve on port
 const PORT = process.env.PORT || 5002;
 
 server.listen(PORT, () =>
