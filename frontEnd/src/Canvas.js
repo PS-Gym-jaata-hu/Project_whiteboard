@@ -26,6 +26,9 @@ const Canvas = ({
     context.lineCap = "round";
     context.strokeStyle = color;
     context.lineWidth = 5;
+
+    context.fillStyle = "white";
+    context.fillRect(0, 0, canvas.width, canvas.height);
     ctx.current = context;
   }, []);
 
@@ -67,6 +70,14 @@ const Canvas = ({
         canvasRef.current.height
       );
     }
+    ctx.current.fillStyle = "white";
+    ctx.current.fillRect(
+      0,
+      0,
+      canvasRef.current.width,
+      canvasRef.current.height
+    );
+    
     elements.forEach((ele, i) => {
       if (ele.element === "rect") {
         roughCanvas.draw(
