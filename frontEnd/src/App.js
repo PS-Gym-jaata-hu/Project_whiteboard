@@ -52,7 +52,7 @@ const App = () => {
 
   // ✅ Emit user joined only when ready
   useEffect(() => {
-    if (roomJoined && user?.username) {
+    if (roomJoined && user?.userName) {
       socket.emit("user-joined", user);
     }
   }, [roomJoined, user]);
