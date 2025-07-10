@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import Canvas from "./Canvas";
 
-const Room = ({ userNo, socket, setUsers, setUserNo }) => {
+export const Room = ({ userNo, socket, setUsers, setUserNo }) => {
   const canvasRef = useRef(null);
   const ctx = useRef(null);
   const [color, setColor] = useState("#000000");
@@ -11,11 +11,7 @@ const Room = ({ userNo, socket, setUsers, setUserNo }) => {
   const [tool, setTool] = useState("pencil");
 
   useEffect(() => {
-    socket.on("message", (data) => {
-      toast.info(data.message);
-    });
-  }, []);
-  useEffect(() => {
+    socket.on("message", (data) => toast.info(data.message));
     socket.on("users", (data) => {
       setUsers(data);
       setUserNo(data.length);
@@ -31,132 +27,61 @@ const Room = ({ userNo, socket, setUsers, setUserNo }) => {
   };
 
   const undo = () => {
-    setHistory((prevHistory) => [
-      ...prevHistory,
-      elements[elements.length - 1],
-    ]);
-    setElements((prevElements) =>
-      prevElements.filter((ele, index) => index !== elements.length - 1)
-    );
+    setHistory((prev) => [...prev, elements.at(-1)]);
+    setElements((prev) => prev.slice(0, -1));
   };
-  const redo = () => {
-    setElements((prevElements) => [
-      ...prevElements,
-      history[history.length - 1],
-    ]);
-    setHistory((prevHistory) =>
-      prevHistory.filter((ele, index) => index !== history.length - 1)
-    );
-  };
-  return (
-    <div className="container-fluid">
-      <div className="row">
-        <h1 className="display-5 pt-4 pb-3 text-center">
-          React Drawing App - users online:{userNo}
-        </h1>
-      </div>
-      <div className="row justify-content-center align-items-center text-center py-2">
-        <div className="col-md-2">
-          <div className="color-picker d-flex align-items-center justify-content-center">
-            Color Picker : &nbsp;
-            <input
-              type="color"
-              value={color}
-              onChange={(e) => setColor(e.target.value)}
-            />
-          </div>
-        </div>
-        <div className="col-md-3">
-          <div className="form-check form-check-inline">
-            <input
-              className="form-check-input"
-              type="radio"
-              name="tools"
-              id="pencil"
-              value="pencil"
-              checked={tool === "pencil"}
-              onClick={(e) => setTool(e.target.value)}
-              readOnly={true}
-            />
-            <label className="form-check-label" htmlFor="pencil">
-              Pencil
-            </label>
-          </div>
-          <div className="form-check form-check-inline">
-            <input
-              className="form-check-input"
-              type="radio"
-              name="tools"
-              id="line"
-              value="line"
-              checked={tool === "line"}
-              onClick={(e) => setTool(e.target.value)}
-              readOnly={true}
-            />
-            <label className="form-check-label" htmlFor="line">
-              Line
-            </label>
-          </div>
-          <div className="form-check form-check-inline">
-            <input
-              className="form-check-input"
-              type="radio"
-              name="tools"
-              id="rect"
-              value="rect"
-              checked={tool === "rect"}
-              onClick={(e) => setTool(e.target.value)}
-              readOnly={true}
-            />
-            <label className="form-check-label" htmlFor="rect">
-              Rectangle
-            </label>
-          </div>
-        </div>
 
-        <div className="col-md-2">
-          <button
-            type="button"
-            className="btn btn-outline-primary"
-            disabled={elements.length === 0}
-            onClick={() => undo()}
-          >
-            Undo
-          </button>
-          &nbsp;&nbsp;
-          <button
-            type="button"
-            className="btn btn-outline-primary ml-1"
-            disabled={history.length < 1}
-            onClick={() => redo()}
-          >
-            Redo
-          </button>
-        </div>
-        <div className="col-md-1">
-          <div className="color-picker d-flex align-items-center justify-content-center">
-            <input
-              type="button"
-              className="btn btn-danger"
-              value="clear canvas"
-              onClick={clearCanvas}
-            />
+  const redo = () => {
+    setElements((prev) => [...prev, history.at(-1)]);
+    setHistory((prev) => prev.slice(0, -1));
+  };
+
+  return (
+    <div className="container-fluid min-vh-100 py-4 px-3" style={{ background: "linear-gradient(to right, #141e30, #243b55)" }}>
+      <div className="rounded-4 shadow-lg bg-white p-4 mb-4">
+        <h2 className="text-center text-dark fw-bold mb-3">
+          🎨 Whiteboard Room — <span className="text-muted">Users Online: {userNo}</span>
+        </h2>
+        <div className="row align-items-center justify-content-center">
+          <div className="col-md-2 mb-2">
+            <label className="form-label fw-bold text-secondary">Color:</label>
+            <input type="color" className="form-control form-control-color" value={color} onChange={(e) => setColor(e.target.value)} />
+          </div>
+          <div className="col-md-5 mb-2">
+            <label className="form-label fw-bold text-secondary">Tool:</label>
+            <div className="btn-group w-100">
+              {["pencil", "line", "rect"].map((t) => (
+                <input
+                  key={t}
+                  type="button"
+                  className={`btn btn-outline-dark ${tool === t ? "active" : ""}`}
+                  value={t.charAt(0).toUpperCase() + t.slice(1)}
+                  onClick={() => setTool(t)}
+                />
+              ))}
+            </div>
+          </div>
+          <div className="col-md-3 mb-2 d-flex gap-2">
+            <button className="btn btn-outline-warning w-50" onClick={undo} disabled={!elements.length}>Undo</button>
+            <button className="btn btn-outline-warning w-50" onClick={redo} disabled={!history.length}>Redo</button>
+          </div>
+          <div className="col-md-2 mb-2">
+            <button className="btn btn-outline-danger w-100" onClick={clearCanvas}>Clear</button>
           </div>
         </div>
       </div>
-      <div className="row">
-        <Canvas
-          canvasRef={canvasRef}
-          ctx={ctx}
-          color={color}
-          setElements={setElements}
-          elements={elements}
-          tool={tool}
-          socket={socket}
-        />
-      </div>
+      <Canvas
+        canvasRef={canvasRef}
+        ctx={ctx}
+        color={color}
+
+        setElements={setElements}
+        elements={elements}
+        tool={tool}
+
+        socket={socket}
+      />
     </div>
   );
 };
-
 export default Room;
