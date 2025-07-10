@@ -61,23 +61,23 @@ const Canvas = ({
   };
 
   useLayoutEffect(() => {
-    const roughCanvas = rough.canvas(canvasRef.current);
-    if (elements.length > 0) {
-      ctx.current.clearRect(
-        0,
-        0,
-        canvasRef.current.width,
-        canvasRef.current.height
-      );
-    }
-    ctx.current.fillStyle = "white";
-    ctx.current.fillRect(
-      0,
-      0,
-      canvasRef.current.width,
-      canvasRef.current.height
-    );
-    
+    const canvas = canvasRef.current;
+  if (!canvas) return;
+
+  if (!ctx.current) {
+    ctx.current = canvas.getContext("2d");
+    if (!ctx.current) return; // still null, exit safely
+  }
+
+  const roughCanvas = rough.canvas(canvas);
+
+  if (elements.length > 0) {
+    ctx.current.clearRect(0, 0, canvas.width, canvas.height);
+  }
+
+  ctx.current.fillStyle = "white";
+  ctx.current.fillRect(0, 0, canvas.width, canvas.height);
+
     elements.forEach((ele, i) => {
       if (ele.element === "rect") {
         roughCanvas.draw(
