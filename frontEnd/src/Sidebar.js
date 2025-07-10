@@ -25,7 +25,7 @@ export const Sidebar = ({ users, user, socket }) => {
         <div className="pt-3">
           {users.map((usr, index) => (
             <div key={index} className="text-center py-1">
-              {usr.username}
+              {usr.userName}
               {usr.id === socket.id && <span className="text-warning"> (You)</span>}
             </div>
           ))}
